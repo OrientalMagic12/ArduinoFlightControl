@@ -1,0 +1,6 @@
+2023/11/15:
+-Second  Version of Drone frame in Solidworks
+-Stress Simulation for second drone frame using Solidworks Simulations
+-ESPNow communication between 2 Wemos Lolin32 lite boards
+-I2C library for MPU9250
+
