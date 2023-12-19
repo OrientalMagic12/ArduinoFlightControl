@@ -9,20 +9,20 @@ ledcSetup(5, 250, 12);
 ledcSetup(6, 250, 12);
 ledcSetup(7, 250, 12);
 
-ledcAttachPin(17 , 0);//Attaching the PWM output channels to individual GPOI pins ( GPOI pin count, channel number)
-ledcAttachPin(5 , 0);
+ledcAttachPin(13 , 0);//Attaching the PWM output channels to individual GPOI pins ( GPOI pin count, channel number)
 ledcAttachPin(15 , 0);
-ledcAttachPin(13 , 0);
-ledcAttachPin(22 , 0);
-ledcAttachPin(19 , 0);
+ledcAttachPin(17 , 0);
+ledcAttachPin(5 , 0);
 ledcAttachPin(18 , 0);
 ledcAttachPin(23 , 0);
+ledcAttachPin(19 , 0);
+ledcAttachPin(22 , 0);
 ledcWrite(0, 2048);
 delay(10000);
 ledcWrite(0, 1024);
 delay(10000);
-ledcWrite(0, 1200);
-delay(10000);
+ledcWrite(0, 1100);
+delay(5000);
 }
 
 void loop() {

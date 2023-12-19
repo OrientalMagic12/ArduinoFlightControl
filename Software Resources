@@ -1,0 +1,36 @@
+-Create Arduino Library 
+https://roboticsbackend.com/arduino-create-library/
+
+-PAC9685 Servo Driver
+https://cdn-shop.adafruit.com/datasheets/PCA9685.pdf
+Default Update rate: 200HZ
+
+-DS031 Servo
+500 microseconds - 2500 microseconds
+-Servos use a weird sort of PWM signals, they only care about the pulse length instead of the duty cycle. 
+
+-I2C Communication:
+https://www.youtube.com/watch?v=6IAkYpmA1DQ
+
+Notes on IMU:
+-Gyroscopes are percise but inacurate because intergrating rads/sec into rads causes steady state errors
+-Accelerometers are accurate because they work by doing inverse trig, however, they are subjected to noise from motor vibrations, making them very impercise
+-By using filters, such as a complementry filter, kalman filter, or madgwick filter, the sensor values from the gyroscope an accelerometer can be merged to get a both percise and accurate angle
+-By turning on the internal low pass filter on the IMU for the gyroscope and accelerometer, noise from environmental factors, such as motor vibration can be suppressed. 
+-Before using Gyroscope values, it is nesseccary calibrate the gyroscope values
+  -This can be done by getting 5000 gyroscope values over 5 seconds while the IMU is at rest, then subtracting the average from all gyroscope values. 
+  -This works because the gyroscope angular velocity values should be zero at rest. 
+
+Notes on ESC:
+-The Raptor 5 ESC by flycolor supports PWM inputs with a frequency of 250 HZ.
+-1000us is lowest power & 2000us is highest power
+-Calibrate ESC before flight
+-The output for PWM pins on the microcontroller should be set to a frequency of 250HZ and a resolution of 12, which means there will be 4095 different duty cycle lengths to choose from
+-Make sure the current rating for the ESC matches the max current of the Brushless DC motor used
+-When the ESC output voltage is set to max, the output voltage matches the battery voltage, therefore if using a battery with a higher voltage than the max voltage of the brushless DC motor, add a limit to the ESC output
+
+Notes on batteries:
+-C rating measures the batteries discharge rate
+-1C means that the battery can discharge the battery capacity in 1 hour
+-Miliamps Per Hour (MAH) measures the energy capacity of a battery. A battery with a 1500mah would last 1 hour if you draw 1500 miliamps of current. 
+-So then a 120C 1500mah battery will be able to discharge 180 Amps of current for 30 seconds

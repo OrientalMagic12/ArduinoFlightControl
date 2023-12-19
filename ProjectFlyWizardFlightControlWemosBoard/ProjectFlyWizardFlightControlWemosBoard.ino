@@ -1,7 +1,22 @@
 #define RXD2 25 // Defining the Recieving and Transmitting Pins on the Wemos Board
 #define TXD2 26
+#include <esp_now.h> //Wireless communication between two Wemos Boards 
+#include <WiFi.h> 
 
+typedef struct struct_message {
+  float PP;
+  float PI2;
+  float PD;
+  float RP;
+  float RI;
+  float RD;
+  float YP;
+  float YI;
+  float YD;
+} struct_message;
 
+// Create a struct_message called myData
+struct_message myData;
 
 String rawstring;
 String Gyrox;
@@ -24,6 +39,7 @@ int ICroll;
 int ICthrottle;
 int ISwitch1;
 int ISwitch2;
+int LoopTimer;
 
 float Droll; //Desired Roll, Yaw and Pitch
 float Dpitch;
@@ -70,8 +86,65 @@ int Input4B;
 
 int PIDReturn[]={0, 0, 0};
 
+void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) { //Recieving PID values
+  if (ISwitch2 > 1500){
+  memcpy(&myData, incomingData, sizeof(myData));
+  Serial.print("Bytes received: ");
+  Serial.println(len);
+ /* Serial.print("Pitch P: ");
+  Serial.println(myData.PP);
+  Serial.print("Pitch I: ");
+  Serial.println(myData.PI2);
+  Serial.print("Pitch D: ");
+  Serial.println(myData.PD);
+  Serial.print("Roll P: ");
+  Serial.println(myData.RP);
+  Serial.print("Roll I: ");
+  Serial.println(myData.RI);
+  Serial.print("Roll D: ");
+  Serial.println(myData.RD);
+  Serial.print("Yaw P: ");
+  Serial.println(myData.YP);
+  Serial.print("Yaw I: ");
+  Serial.println(myData.YI);
+  Serial.print("Yaw D: ");
+  Serial.println(myData.YD);
+  Serial.println();*/
 
-void reset_pid(void) {
+Pforpitch = myData.PP; //PID values for roll //0.6first 0.3second //0.15 third //0.075fourth //0.03 sixth 0.01 seventh //0.005eighth
+Iforpitch = myData.PI2; //3.5first //0.8 fifth 0.1 seventh //0.01eighth
+Dforpitch = myData.PD;
+
+Pforroll = myData.RP; //PID  values for pitch //0.6first 0.3second //0.15 third //0.075 fourth //0.03 sixth 0.01 seventh //0.005eighth
+Iforroll = myData.RI; //0.8 fifth 0.1 seventh//0.01 eighth
+Dforroll = myData.RD;
+
+Pforyaw = myData.YP; //PID values for yaw
+Iforyaw = myData.YI;
+Dforyaw = myData.YD;
+  
+  Serial.print("Pitch P: ");
+  Serial.println(Pforpitch,6);
+  Serial.print("Pitch I: ");
+  Serial.println(Iforpitch,6);
+  Serial.print("Pitch D: ");
+  Serial.println(Dforpitch,6);
+  Serial.print("Roll P: ");
+  Serial.println(Pforroll,6);
+  Serial.print("Roll I: ");
+  Serial.println(Iforroll,6);
+  Serial.print("Roll D: ");
+  Serial.println(Dforroll,6);
+  Serial.print("Yaw P: ");
+  Serial.println(Pforyaw,6);
+  Serial.print("Yaw I: ");
+  Serial.println(Iforyaw,6);
+  Serial.print("Yaw D: ");
+  Serial.println(Dforyaw,6);
+  Serial.println();
+  }
+}
+void reset_pid(void) { //Reset PID function for everytime the drone lands
   PEroll=0; PEpitch=0; PEyaw=0;
   PIroll=0; PIpitch=0; PIyaw=0;
 }
@@ -93,6 +166,14 @@ void pid_equation(float Error, float P , float I, float D, float PrevError, floa
 
 
 void setup() {
+
+WiFi.mode(WIFI_STA); //Initializatin of wireless communication bewteen Wemos boards
+ if (esp_now_init() != ESP_OK) {
+    Serial.println("Error initializing ESP-NOW");
+    return;
+  }
+
+  esp_now_register_recv_cb(OnDataRecv);
   // Note the format for setting a serial port is as follows: Serial2.begin(baud-rate, protocol, RX pin, TX pin);
 ledcSetup(0, 250, 12); //Led control setup, ( Channel number, Frequency (hz), Resolution (2^x)) 
 ledcSetup(1, 250, 12);
@@ -103,12 +184,12 @@ ledcSetup(5, 250, 12);
 ledcSetup(6, 250, 12);
 ledcSetup(7, 250, 12);
 
-ledcAttachPin(17 , 0);//1 Down
-ledcAttachPin(5 , 1); //1 up
+ledcAttachPin(5 , 0);//1 Down
+ledcAttachPin(17 , 1); //1 up
 ledcAttachPin(15 , 2); //2Down
 ledcAttachPin(13 , 3); //2 Up
-ledcAttachPin(22 , 4);// 3 Down
-ledcAttachPin(19 , 5);// 3 Up
+ledcAttachPin(19 , 4);// 3 Down
+ledcAttachPin(22 , 5);// 3 Up
 ledcAttachPin(18, 6);// 4 Down
 ledcAttachPin(23 , 7);// 4 Up
 
@@ -117,12 +198,12 @@ ledcAttachPin(23 , 7);// 4 Up
 
   //Serial1.begin(9600, SERIAL_8N1, RXD2, TXD2); //Begin Serial one if needed
   Serial2.begin(115200, SERIAL_8N1, RXD2, TXD2); //Begin Serial two with bit rate of 115200, ( Bit rate, SERIAL_8N1, Recieving pin, Transmitting pin)
-
+LoopTimer=micros();
 }
 
 void loop() { 
   while (Serial2.available()) {
-    time1 = millis();
+    time1 = micros();
     rawstring = (Serial2.readString()); //Breaking up the raw string into sub strings
     Cthrottle = rawstring.substring(0, 4);
     Cpitch = rawstring.substring(4, 8);
@@ -215,11 +296,12 @@ void loop() {
     PEyaw =PIDReturn[1];
     PIyaw =PIDReturn[2];
 
-    Serial.print(MIyaw);
+   /* Serial.print(MIyaw);
     Serial.print("\t");
     Serial.print(MIroll);
     Serial.print("\t");
-    Serial.println(MIpitch);
+    Serial.println(MIpitch);*/
+
   /*  Serial.print(Eroll);
     Serial.print("\t");
     Serial.print(Epitch);
@@ -228,15 +310,15 @@ void loop() {
 
   if (ICthrottle > 1800) ICthrottle = 1800;
 
-  Input1A= 1.024*(ICthrottle + MIpitch - MIroll +MIyaw);
-  Input1B= 1.024*(ICthrottle + MIpitch -MIroll -MIyaw);
-  Input2A= 1.024*(ICthrottle -MIpitch -MIroll +MIyaw);
-  Input2B= 1.024*(ICthrottle -MIpitch -MIroll -MIyaw);
+  Input1A= 0.900*(ICthrottle + MIpitch - MIroll +MIyaw);
+  Input1B= 0.900*(ICthrottle + MIpitch -MIroll -MIyaw);
+  Input2A= 0.900*(ICthrottle -MIpitch -MIroll +MIyaw);
+  Input2B= 0.900*(ICthrottle -MIpitch -MIroll -MIyaw);
 
-  Input3A= 1.024*(ICthrottle -MIpitch +MIroll +MIyaw);
-  Input3B= 1.024*(ICthrottle -MIpitch +MIroll -MIyaw);
-  Input4A= 1.024*(ICthrottle +MIpitch +MIroll +MIyaw);
-  Input4B= 1.024*(ICthrottle +MIpitch +MIroll -MIyaw);
+  Input3A= 0.900*(ICthrottle -MIpitch +MIroll +MIyaw);
+  Input3B= 0.900*(ICthrottle -MIpitch +MIroll -MIyaw);
+  Input4A= 0.900*(ICthrottle +MIpitch +MIroll +MIyaw);
+  Input4B= 0.900*(ICthrottle +MIpitch +MIroll -MIyaw);
 
   if (Input1A > 2000) Input1A = 1999;
   if (Input1B > 2000) Input1B = 1999; 
@@ -274,9 +356,47 @@ void loop() {
     ledcWrite(5, Input3B);
     ledcWrite(6, Input4A);
     ledcWrite(7, Input4B);
+    
   }
 
-    Serial.print(Input1A);
+  else {
+    ledcWrite(0, 1024);
+    ledcWrite(1, 1024);
+    ledcWrite(2, 1024);
+    ledcWrite(3, 1024);
+    ledcWrite(4, 1024);
+    ledcWrite(5, 1024);
+    ledcWrite(6, 1024);
+    ledcWrite(7, 1024);
+    if (ISwitch2 > 1500){
+  Serial.print("Pitch P: ");
+  Serial.println(Pforpitch,6);
+  Serial.print("Pitch I: ");
+  Serial.println(Iforpitch,6);
+  Serial.print("Pitch D: ");
+  Serial.println(Dforpitch,6);
+  Serial.print("Roll P: ");
+  Serial.println(Pforroll,6);
+  Serial.print("Roll I: ");
+  Serial.println(Iforroll,6);
+  Serial.print("Roll D: ");
+  Serial.println(Dforroll,6);
+  Serial.print("Yaw P: ");
+  Serial.println(Pforyaw,6);
+  Serial.print("Yaw I: ");
+  Serial.println(Iforyaw,6);
+  Serial.print("Yaw D: ");
+  Serial.println(Dforyaw,6);
+  Serial.println();
+  delay(5000);
+    
+  }
+  
+    
+  }
+  Serial.println(ISwitch2);
+
+    /*Serial.print(Input1A);
     Serial.print("\t");
        Serial.print(Input1B);
     Serial.print("\t");
@@ -294,13 +414,20 @@ void loop() {
   
 
 
+*/
 
+while (micros() - time1 < 8000){
 
+} //Delay that makes sure update loop is 125hz 
 
-
-time1 = millis()-time1;
+time1 = micros()-time1; //Timer to see how long the code needs to run
 Serial.print("Time:  ");
 Serial.print(time1);
+
+
+
+
+
   }
   
 }

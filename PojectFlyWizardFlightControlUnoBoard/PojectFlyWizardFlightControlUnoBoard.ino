@@ -1,7 +1,7 @@
-#include "FastIMU.h"
-#include <Wire.h>
+#include "FastIMU.h" //MPU9250 Library
+#include <Wire.h> //I2C communication library 
 
-#include "ppm.h"
+#include "ppm.h" //Pulse Position Modulation library
 
 // PPM channel layout (update for your situation)
 #define THROTTLE        3
@@ -12,11 +12,11 @@
 #define SWITCH3WAY_2    6    
 
 
-float AngularAccX;
+float AngularAccX; //Angular Velocity Variables from IMU
 float AngularAccY;
 float AngularAccZ;
 
-short throttle;
+short throttle; //Variables to store controller inputs 
 short Remoteroll;
 short Remotepitch;
 short Remoteyaw;
@@ -62,7 +62,7 @@ void setup() {
   
 #ifdef PERFORM_CALIBRATION
   Serial.println("FastIMU calibration & data example");
-  /*if (IMU.hasMagnetometer()) {
+  /*if (IMU.hasMagnetometer()) { //Don't care about magnetometer
     delay(1000);
     Serial.println("Move IMU in figure 8 pattern until done.");
     delay(3000);
@@ -118,6 +118,7 @@ void setup() {
       ;
     }
   }
+  
 }
 
 void loop() {

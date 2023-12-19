@@ -3,4 +3,122 @@
 -Stress Simulation for second drone frame using Solidworks Simulations
 -ESPNow communication between 2 Wemos Lolin32 lite boards
 -I2C library for MPU9250
+-Programmed wireless PID value changer so that I can tune the PID controller without having to flash the program everytime I wanted to change values
+
+2023/11/16:
+-Discovered that glowforge mdk boards have a different thickness as stated on their website
+-Updated the CAD with the new correct thickness
+-Think Draft Board = 5.5mm
+-Medium Draft Board = 3.3mm
+-Tested for the optimal laser kerf using a custom test object I designed
+-Optimal laser kerf for fitting medium draft board into thick draft board
+-Optimal laser kerf = 0.16mm
+-Exported CAD into .step file to open in fusion 360
+-Used fusion 360's laser kerf add-in to transform all the faces into .dxf files for lasercutting
+-Cut all drone frame pieces on the glowforge laser cutter (Took 6 hours)
+-Needs 2 passes for both medium and thick draft boards
+-For Think Draftboard: 2 pass 120 speed
+-For Medium Draftboard: 2 pass 168 speed
+-Remember to clean the camera regularly
+
+2023/11//17:
+-Took apart old drone frame
+-Assembeled new drone frame
+-Re-wired all electrical components (ESC to Wemos, Wemos Serial Communication to Arduino Uno, Arduino Uno to MPU9250 and FS 1A6B)
+-Finished all ESC calibration
+-Made sure every motor spins in the correct direction
+-Repaired motor with bent main axle through hammering it
+
+2023/11/18:
+-Fixed all flight logic behind the flight controller
+-Added the online PID tuner to the flight control main program
+-Ran tests of the automatic PID tuner
+-Attached Drone to testing rig
+-Ran flight tests (2 hours of video footage, PID values used in Excel doc)
+-Achived stationary hovering above the testing table for 5-6 sec
+-Problems:
+  -Drone drifts left, likely because I am using a angular velocity flight control and the table is slanted towards the left
+  -Bolts become loose over time due to vibration
+  -Collision with table side cracked the frame base board
+-Solutions:
+  -Use an angle based flight controller
+  -Use lock nuts or put in spring washers
+  -Better base plate design
+-Plans for future: 
+  -Direct I2C communication with Wemos board for faster update rate, currently at 125HZ, better to be 250HZ
+  -Write library for intergrating anglular velocity values from MPU9250 to achive angle based flight controller
+  -Order lock nuts
+
+2023/11/21:
+-Started the design of a new vector thrust control unit
+-Started the design of a new joint unit'
+
+2023/11/22:
+-Finished the design of a new vector thrust control unit
+-Finished the design of a new joint unit
+
+2023/11/23:
+-Research on I2C communication protocol
+  -MPU9250 Register Map
+  -MPU6050 Register Map
+  -PCA9685 Servo driver Register Map
+  -SCL, SDA pin configuration for ESP32 based boards
+-Research on noise filters
+  -Kalman filter
+  -Complementry filter
+  -Madwick filter
+    -Quaternion math is difficult
+-Started code for getting sensor values from MPU9250 or MPU6050 using I2C communication 
+  -Intergration of angular velocity (Percise but Inaccurate)
+  -Inverse trig of acceleration (not percise but accurate)
+  -Merging of sensor values using a complementry filter
+
+
+2023/11/24:
+-Designed thrid itteration of drone frame
+  -Weighs 1/3 of version 2
+  -Left attachment slots for vector thrust control unit
+  -Laser cut, pieced together with screw joints
+  -Using nylon lock nuts for assembly to prevent loosening from vibration
+-Ran stress simulations for third version of drone frame
+  -Similar performance as second frane under same applied forces
+  -Fixed points of concentrated stress
+
+2023/11/25:
+-Research on Pulse Position Modulation for reciving data from the IA6B radio reciever
+-Programmed library for reading PPM signals for ESP32
+
+2023/11/27:
+-Manufractured part of frame V3 using the school Glowforge
+  -Incorrect hole posistion for PCA9685
+  -Incorrect hole size for battery mounting plate
+-Took apart frame V2
+-Assembled part of the frame V3
+
+2023/11/28:
+-Fixed all incorrect hole positionos
+-Cut out all the modified parts
+-Assembeled the frame
+
+2023/11/29:
+-Wired everything
+
+2023/11/30:
+-Lisa incident, all progress delayed
+
+2023/12/1：
+-Flight testing, 
+-Pushed the throttle the wrong way
+-Crashed the drone
+-3 out of 4 arms completely broke off
+-7 out of 8 propeller blades shattered 
+-The propeller blades sliced through 3 of my ESC signal wires
+-I want to die
+
+
+
+
+
+
+
 
